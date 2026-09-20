@@ -21,6 +21,14 @@ const Api = (() => {
     const data = text ? JSON.parse(text) : {};
 
     if (!res.ok) {
+      // Sessions live in server memory, so a server restart (or revoked account) invalidates the
+      // token stored in this browser. Send the user back to the login page instead of leaving
+      // them on a page full of errors. (Not for the login call itself: 401 there = wrong password.)
+      if (res.status === 401 && path !== '/api/auth/login') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        window.location.href = 'index.html';
+      }
       const message = data.error || `Request failed (${res.status})`;
       throw new Error(message);
     }

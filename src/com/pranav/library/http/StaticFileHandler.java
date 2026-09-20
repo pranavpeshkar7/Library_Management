@@ -24,11 +24,11 @@ public class StaticFileHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
-        if (path.equals("/")) path = "/index.html";
+        if (path.equals("/")) path = "/homepage.html";
 
         File file = new File(rootDir, path).getCanonicalFile();
         // Prevent path traversal outside the frontend directory.
-        if (!file.getPath().startsWith(rootDir.getCanonicalPath())) {
+        if (!file.getPath().startsWith(rootDir.getCanonicalPath() + File.separator)) {
             exchange.sendResponseHeaders(403, -1);
             return;
         }

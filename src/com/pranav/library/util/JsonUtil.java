@@ -56,7 +56,12 @@ public final class JsonUtil {
                 case '\\': sb.append("\\\\"); break;
                 case '\n': sb.append("\\n"); break;
                 case '\r': sb.append("\\r"); break;
-                default: sb.append(c);
+                case '\t': sb.append("\\t"); break;
+                case '\b': sb.append("\\b"); break;
+                case '\f': sb.append("\\f"); break;
+                default:
+                    if (c < 0x20) sb.append(String.format("\\u%04x", (int) c)); // other control chars must be escaped too
+                    else sb.append(c);
             }
         }
         sb.append("\"");
@@ -71,6 +76,17 @@ public final class JsonUtil {
      * which never nest objects or arrays inside the request.
      */
     public static Map<String, String> parse(String json) {
+        if (json != null && !json.trim().isEmpty() && !json.trim().startsWith("{")) {
+            throw new IllegalArgumentException("Request body is not valid JSON");
+        }
+        try {
+            return parseObject(json);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("Request body is not valid JSON");
+        }
+    }
+
+    private static Map<String, String> parseObject(String json) {
         Map<String, String> result = new LinkedHashMap<>();
         if (json == null) return result;
         String trimmed = json.trim();

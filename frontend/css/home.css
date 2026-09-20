@@ -1,0 +1,265 @@
+/* ============================================================
+   Reading Room — public pages (homepage.html, contact.html)
+   Same palette and type as the app (css/style.css): reading-room
+   green, parchment paper, brass. Lora for titles, Inter for text.
+   ============================================================ */
+
+:root {
+  --ink: #1f2a23;
+  --ink-soft: #55594f;
+  --paper: #f6f3ec;
+  --paper-raised: #fffdf8;
+  --green: #2f4a3c;
+  --green-deep: #1f3229;
+  --brass: #a9782f;
+  --brass-soft: #e7d9bd;
+  --line: #d8d0bf;
+  --stamp: #9c3b2e;
+
+  --font-title: 'Lora', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+.skip-link {
+  position: absolute; left: -999px; top: 8px;
+  background: var(--green-deep); color: #fff; padding: 8px 14px; border-radius: var(--radius); z-index: 10;
+}
+.skip-link:focus { left: 8px; }
+
+/* ---------- Navigation bar ---------- */
+
+.site-header {
+  position: sticky; top: 0; z-index: 5;
+  background: rgba(246, 243, 236, 0.94);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+}
+.header-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 68px; gap: 16px;
+}
+.brand {
+  font-family: var(--font-title);
+  font-size: 1.5rem; font-weight: 600; letter-spacing: 0.01em;
+  color: var(--green-deep); text-decoration: none;
+}
+.brand span { color: var(--brass); }
+
+.site-nav { display: flex; align-items: center; gap: 6px; }
+.site-nav a {
+  text-decoration: none; font-size: 0.95rem; font-weight: 500;
+  color: var(--ink-soft);
+  padding: 8px 14px; border-radius: var(--radius);
+  transition: color .15s, background .15s;
+}
+.site-nav a:hover { color: var(--green-deep); background: rgba(47, 74, 60, 0.07); }
+.site-nav a[aria-current="page"] {
+  color: var(--green-deep);
+  box-shadow: inset 0 -2px 0 var(--brass);
+  border-radius: 0;
+}
+.site-nav a.nav-cta { background: var(--green); color: #fff; margin: 0 4px; }
+.site-nav a.nav-cta:hover { background: var(--green-deep); color: #fff; }
+
+.nav-toggle {
+  display: none; background: none; border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 8px 10px; cursor: pointer; color: var(--green-deep);
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-block; font: inherit; font-weight: 600; font-size: 0.98rem;
+  text-decoration: none; cursor: pointer;
+  padding: 13px 24px; border-radius: var(--radius);
+  border: 1px solid var(--green); background: var(--green); color: #fff;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn:hover { background: var(--green-deep); border-color: var(--green-deep); }
+.btn-outline { background: transparent; color: var(--green-deep); }
+.btn-outline:hover { background: var(--green); color: #fff; }
+.btn-brass { background: var(--brass); border-color: var(--brass); }
+.btn-brass:hover { background: #8f6424; border-color: #8f6424; }
+.btn-light { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
+.btn-light:hover { background: rgba(255,255,255,.12); border-color: #fff; }
+
+/* ---------- Hero ---------- */
+
+.hero { padding: 72px 0 88px; overflow-x: clip; } /* the stamp animation starts oversized; don't let it widen the page */
+.hero-grid {
+  display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 64px; align-items: center;
+}
+.hero h1 {
+  font-family: var(--font-title); font-weight: 600;
+  font-size: clamp(2.3rem, 5.4vw, 3.9rem); line-height: 1.1; letter-spacing: -0.01em;
+  color: var(--green-deep); margin: 0 0 22px; max-width: 14em; text-wrap: balance;
+}
+.hero p.lead {
+  font-size: 1.15rem; color: var(--ink-soft); max-width: 32em; margin: 0 0 34px;
+}
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ---------- The catalogue card (the one memorable element) ---------- */
+
+.card-wrap { justify-self: center; width: 100%; max-width: 400px; }
+
+.catalog-card {
+  position: relative; margin: 0;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 30px 30px 116px;
+  box-shadow: 0 1px 0 var(--line), 6px 8px 0 -1px var(--brass-soft), 6px 8px 0 0 var(--line);
+  transform: rotate(1.4deg);
+  background-image:
+    linear-gradient(to right, transparent 17px, rgba(156,59,46,.35) 17px, rgba(156,59,46,.35) 18px, transparent 18px);
+}
+.cc-head {
+  display: flex; justify-content: space-between; gap: 12px;
+  font-size: 0.82rem; color: var(--ink-soft);
+  padding-bottom: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--line);
+}
+.cc-title {
+  font-family: var(--font-title); font-weight: 600; font-size: 1.9rem; line-height: 1.15;
+  color: var(--green-deep); margin: 0 0 4px;
+}
+.cc-author { font-style: italic; font-family: var(--font-title); color: var(--ink-soft); margin: 0 0 26px; }
+.cc-rows { margin: 0; }
+.cc-rows div {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 0.93rem;
+}
+.cc-rows dt { color: var(--ink-soft); }
+.cc-rows dd { margin: 0; font-weight: 600; text-align: right; }
+
+/* the hole every index card has, for the catalogue drawer rod */
+.catalog-card::after {
+  content: ""; position: absolute; left: 50%; bottom: 20px; width: 16px; height: 16px;
+  margin-left: -8px; border-radius: 50%;
+  background: var(--paper); border: 1px solid var(--line);
+  box-shadow: inset 1px 2px 3px rgba(0,0,0,.12);
+}
+
+.stamp {
+  position: absolute; right: 26px; bottom: 60px;
+  padding: 7px 14px; border: 3px double var(--stamp); border-radius: 4px;
+  color: var(--stamp); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
+  transform: rotate(-7deg); opacity: 0.88; background: rgba(255,253,248,.5);
+  animation: stamp-down .55s cubic-bezier(.2,.9,.3,1.2) .5s both;
+}
+@keyframes stamp-down {
+  from { transform: rotate(-14deg) scale(1.9); opacity: 0; }
+  to   { transform: rotate(-7deg) scale(1);   opacity: .88; }
+}
+.card-caption { text-align: center; font-size: 0.85rem; color: var(--ink-soft); margin: 30px 0 0; }
+
+/* ---------- Loan rules ---------- */
+
+.rules { padding: 84px 0; border-top: 1px solid var(--line); }
+.rules-grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 64px; align-items: start; }
+.rules h2, .cta-band h2, .contact-intro h1 {
+  font-family: var(--font-title); font-weight: 600; color: var(--green-deep);
+  font-size: clamp(1.7rem, 3.2vw, 2.3rem); line-height: 1.2; margin: 0 0 16px;
+}
+.rules p { color: var(--ink-soft); max-width: 30em; margin: 0 0 14px; }
+
+.ledger { width: 100%; border-collapse: collapse; background: var(--paper-raised); border: 1px solid var(--line); }
+.ledger caption { text-align: left; padding: 0 0 12px; font-family: var(--font-title); font-size: 1.05rem; color: var(--green-deep); }
+.ledger th, .ledger td { text-align: left; padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.ledger tbody tr:last-child th, .ledger tbody tr:last-child td { border-bottom: 0; }
+.ledger th { font-weight: 600; width: 34%; color: var(--green-deep); }
+.ledger td { color: var(--ink-soft); }
+.ledger td strong { color: var(--ink); font-weight: 600; }
+.ledger .group th {
+  background: var(--brass-soft); font-family: var(--font-title); font-size: 0.98rem;
+  padding: 10px 20px; width: auto;
+}
+
+/* ---------- Call to action band ---------- */
+
+.cta-band { background: var(--green-deep); color: #eef1ec; padding: 72px 0; }
+.cta-inner { display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap; }
+.cta-band h2 { color: #fff; margin-bottom: 8px; }
+.cta-band p { margin: 0; color: #c5cfc7; max-width: 34em; }
+.cta-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* ---------- Footer ---------- */
+
+.site-footer { padding: 34px 0 44px; font-size: 0.9rem; color: var(--ink-soft); }
+.footer-inner { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline; }
+.footer-links { display: flex; gap: 20px; }
+.footer-links a { text-decoration: none; }
+.footer-links a:hover { color: var(--green-deep); text-decoration: underline; text-underline-offset: 4px; }
+
+/* ---------- Contact page ---------- */
+
+.contact { padding: 72px 0 96px; }
+.contact-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: start; }
+.contact-intro p { color: var(--ink-soft); max-width: 30em; }
+.details { margin: 32px 0 0; border-top: 1px solid var(--line); }
+.details div { display: flex; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.details dt { width: 96px; flex: none; color: var(--ink-soft); font-size: 0.93rem; }
+.details dd { margin: 0; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.details a { color: var(--green-deep); text-underline-offset: 3px; }
+
+.form-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 32px; }
+.field { margin-bottom: 20px; }
+.field label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; color: var(--green-deep); }
+.field input, .field textarea, .field select {
+  width: 100%; font: inherit; color: var(--ink);
+  padding: 11px 13px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+}
+.field textarea { min-height: 150px; resize: vertical; }
+.field input:focus, .field textarea:focus, .field select:focus {
+  outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(47, 74, 60, .15);
+}
+.form-note { font-size: 0.86rem; color: var(--ink-soft); margin: 14px 0 0; }
+
+/* ---------- Small screens ---------- */
+
+.hero-grid > *, .rules-grid > *, .contact-grid > * { min-width: 0; }
+
+@media (max-width: 860px) {
+  .hero { padding: 48px 0 64px; }
+  .hero-grid, .rules-grid, .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+  .card-wrap { max-width: 380px; }
+  .rules, .contact { padding: 56px 0; }
+}
+
+@media (max-width: 640px) {
+  .nav-toggle { display: inline-flex; }
+  .site-nav {
+    display: none; position: absolute; left: 0; right: 0; top: 100%;
+    flex-direction: column; align-items: stretch; gap: 0;
+    background: var(--paper); border-bottom: 1px solid var(--line); padding: 8px 24px 16px;
+  }
+  .site-nav.open { display: flex; }
+  .site-nav a { padding: 13px 4px; border-bottom: 1px solid var(--line); border-radius: 0; }
+  .site-nav a[aria-current="page"] { box-shadow: none; color: var(--brass); }
+  .site-nav a.nav-cta { margin: 14px 0 0; text-align: center; border-radius: var(--radius); border-bottom: 0; }
+  .form-card { padding: 22px; }
+  .ledger th, .ledger td { padding: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .stamp { animation: none; }
+}

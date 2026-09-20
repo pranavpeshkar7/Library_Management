@@ -3,6 +3,7 @@ package com.pranav.library.http.handlers;
 import com.pranav.library.model.*;
 import com.pranav.library.repository.ResourceRepository;
 import com.pranav.library.service.AuthService;
+import com.pranav.library.service.ResourceManager;
 import com.pranav.library.util.HttpUtil;
 import com.pranav.library.util.JsonUtil;
 import com.sun.net.httpserver.HttpExchange;
@@ -14,10 +15,12 @@ public class ResourceHandler {
 
     private final ResourceRepository resourceRepository;
     private final AuthService authService;
+    private final ResourceManager resourceManager;
 
-    public ResourceHandler(ResourceRepository resourceRepository, AuthService authService) {
+    public ResourceHandler(ResourceRepository resourceRepository, AuthService authService, ResourceManager resourceManager) {
         this.resourceRepository = resourceRepository;
         this.authService = authService;
+        this.resourceManager = resourceManager;
     }
 
     public void list(HttpExchange exchange) throws Exception {
@@ -45,6 +48,14 @@ public class ResourceHandler {
             HttpUtil.sendError(exchange, 400, "title is required");
             return;
         }
+        if (totalCopies < 1) {
+            HttpUtil.sendError(exchange, 400, "totalCopies must be at least 1");
+            return;
+        }
+        if (!"BOOK".equals(type) && !"DVD".equals(type)) {
+            HttpUtil.sendError(exchange, 400, "type must be BOOK or DVD");
+            return;
+        }
 
         String id = UUID.randomUUID().toString();
         LibraryResource resource = "DVD".equals(type)
@@ -65,20 +76,18 @@ public class ResourceHandler {
             return;
         }
 
-        Optional<LibraryResource> existing = resourceRepository.findById(id);
-        if (!existing.isPresent()) {
+        Map<String, String> body = JsonUtil.parse(HttpUtil.readBody(exchange));
+        Integer totalCopies = body.containsKey("totalCopies")
+                ? Integer.valueOf(body.get("totalCopies").trim()) // NumberFormatException -> 400
+                : null;
+
+        Optional<LibraryResource> updated = resourceManager.updateResource(
+                id, body.get("title"), body.get("author"), totalCopies);
+        if (!updated.isPresent()) {
             HttpUtil.sendError(exchange, 404, "No resource with id " + id);
             return;
         }
-
-        Map<String, String> body = JsonUtil.parse(HttpUtil.readBody(exchange));
-        LibraryResource resource = existing.get();
-        if (body.containsKey("title")) resource.setTitle(body.get("title"));
-        if (body.containsKey("author")) resource.setAuthor(body.get("author"));
-        if (body.containsKey("totalCopies")) resource.setTotalCopies(parseIntOrDefault(body.get("totalCopies"), resource.getTotalCopies()));
-
-        resourceRepository.save(resource);
-        HttpUtil.sendJson(exchange, 200, JsonUtil.toJson(toJson(resource)));
+        HttpUtil.sendJson(exchange, 200, JsonUtil.toJson(toJson(updated.get())));
     }
 
     public void remove(HttpExchange exchange) throws Exception {
@@ -90,7 +99,7 @@ public class ResourceHandler {
             HttpUtil.sendError(exchange, 400, "id query parameter is required");
             return;
         }
-        resourceRepository.deleteById(id);
+        resourceManager.removeResource(id);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("message", "Resource removed");

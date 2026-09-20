@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Contact — Reading Room</title>
+<meta name="description" content="Get in touch with the Reading Room library desk." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/home.css" />
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="homepage.html">Reading <span>Room</span></a>
+
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Open menu">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M3 6h16M3 11h16M3 16h16" />
+      </svg>
+    </button>
+
+    <nav class="site-nav" id="siteNav" aria-label="Main">
+      <a href="homepage.html">Home</a>
+      <a href="index.html">Sign in</a>
+      <a href="index.html#signup" class="nav-cta">Sign up</a>
+      <a href="contact.html" aria-current="page">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="contact">
+  <div class="wrap contact-grid">
+
+    <div class="contact-intro">
+      <h1>Questions about your account or a title?</h1>
+      <p>Send a message and the library desk will reply by email. If your access was revoked, include the email address you signed up with so we can find your account.</p>
+
+      <dl class="details">
+        <div><dt>Email</dt><dd><a id="deskEmail" href="mailto:librarian@readingroom.example">librarian@readingroom.example</a></dd></div>
+        <div><dt>Desk hours</dt><dd>Monday to Saturday, 9:00 to 17:00</dd></div>
+        <div><dt>Find us</dt><dd>Main library, ground floor</dd></div>
+      </dl>
+    </div>
+
+    <form class="form-card" id="contactForm" novalidate>
+      <div class="field">
+        <label for="cName">Your name</label>
+        <input type="text" id="cName" name="name" required autocomplete="name" />
+      </div>
+      <div class="field">
+        <label for="cEmail">Your email</label>
+        <input type="email" id="cEmail" name="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="cTopic">What is this about?</label>
+        <select id="cTopic" name="topic">
+          <option>My account or access</option>
+          <option>A book or DVD in the catalogue</option>
+          <option>A loan or due date</option>
+          <option>Something else</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="cMessage">Message</label>
+        <textarea id="cMessage" name="message" required></textarea>
+      </div>
+      <button class="btn" type="submit">Send message</button>
+      <p class="form-note" id="formNote">This opens your email app with the message filled in, ready to send.</p>
+    </form>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>&copy; 2026 Reading Room</span>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="homepage.html">Home</a>
+      <a href="index.html">Sign in</a>
+      <a href="index.html#signup">Sign up</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="js/site.js"></script>
+</body>
+</html>

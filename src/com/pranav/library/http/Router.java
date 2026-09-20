@@ -55,13 +55,18 @@ public class Router implements HttpHandler {
         } catch (com.pranav.library.exceptions.DuplicateUserException
                  | com.pranav.library.exceptions.MaxBorrowLimitExceededException
                  | com.pranav.library.exceptions.InvalidReturnException
-                 | com.pranav.library.exceptions.ResourceNotAvailableException e) {
+                 | com.pranav.library.exceptions.ResourceNotAvailableException
+                 | com.pranav.library.exceptions.AlreadyBorrowedException
+                 | com.pranav.library.exceptions.ResourceInUseException e) {
             HttpUtil.sendError(exchange, 409, e.getMessage());
         } catch (com.pranav.library.exceptions.UserNotFoundException e) {
             HttpUtil.sendError(exchange, 404, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            // Malformed JSON, bad numbers, invalid copy counts, etc. are the CLIENT's fault -> 400, not 500.
+            HttpUtil.sendError(exchange, 400, e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
-            HttpUtil.sendError(exchange, 500, "Internal server error: " + e.getMessage());
+            e.printStackTrace(); // full detail stays in the server console...
+            HttpUtil.sendError(exchange, 500, "Internal server error"); // ...not in the HTTP response
         }
     }
 }

@@ -16,7 +16,7 @@ import java.sql.SQLException;
 public final class DbConnection {
 
     private static final String URL =
-            System.getenv().getOrDefault("DB_URL", "jdbc:mysql://localhost:3306/library_db");
+            System.getenv().getOrDefault("DB_URL", "jdbc:mysql://localhost:3307/library_db");
     private static final String USER =
             System.getenv().getOrDefault("DB_USER", "root");
     private static final String PASSWORD =

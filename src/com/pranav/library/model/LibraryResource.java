@@ -34,7 +34,24 @@ public abstract class LibraryResource {
 
     public void setTitle(String title) { this.title = title; }
     public void setAuthor(String author) { this.author = author; }
-    public void setTotalCopies(int totalCopies) { this.totalCopies = totalCopies; }
+    /**
+     * Changes the catalogue size while keeping the number of copies currently on loan
+     * constant, so availableCopies moves by the same amount as totalCopies.
+     * (Previously availableCopies was left untouched, so newly added copies never
+     * became borrowable and shrinking could make available > total.)
+     */
+    public void setTotalCopies(int newTotal) {
+        int onLoan = this.totalCopies - this.availableCopies;
+        if (newTotal < 1) {
+            throw new IllegalArgumentException("totalCopies must be at least 1");
+        }
+        if (newTotal < onLoan) {
+            throw new IllegalArgumentException("Cannot reduce total copies to " + newTotal
+                    + ": " + onLoan + " copies are currently on loan");
+        }
+        this.totalCopies = newTotal;
+        this.availableCopies = newTotal - onLoan;
+    }
 
     /** Package-private-style mutation, only ResourceManager should call these. */
     public void decrementAvailable() { this.availableCopies--; }

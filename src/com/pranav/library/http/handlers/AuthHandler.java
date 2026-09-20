@@ -39,7 +39,22 @@ public class AuthHandler {
             return;
         }
 
-        User user = authService.signup(name, email, password, role);
+        // The UI only offers Student/Teacher, but the API itself must enforce it: otherwise anyone
+        // can POST {"role":"LIBRARIAN"} and grant themselves admin rights.
+        if (role == Role.LIBRARIAN) {
+            HttpUtil.sendError(exchange, 403, "Librarian accounts cannot be created through public signup");
+            return;
+        }
+        if (password.length() < 6) {
+            HttpUtil.sendError(exchange, 400, "password must be at least 6 characters");
+            return;
+        }
+        if (!email.contains("@")) {
+            HttpUtil.sendError(exchange, 400, "email is not valid");
+            return;
+        }
+
+        User user = authService.signup(name.trim(), email.trim(), password, role);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("id", user.getId());

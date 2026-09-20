@@ -88,6 +88,18 @@ public class BorrowRecordRepository implements Repository<BorrowRecord, String> 
         return 0;
     }
 
+    public int countActiveByResource(String resourceId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM borrow_records WHERE resource_id = ? AND returned_on IS NULL";
+        try (Connection conn = DbConnection.get();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, resourceId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
     public List<BorrowRecord> findByUser(String userId) throws SQLException {
         List<BorrowRecord> records = new ArrayList<>();
         String sql = "SELECT * FROM borrow_records WHERE user_id = ? ORDER BY borrowed_on DESC";

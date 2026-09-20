@@ -9,6 +9,7 @@ import com.pranav.library.repository.UserRepository;
 import com.pranav.library.service.AuthService;
 import com.pranav.library.service.ResourceManager;
 import com.pranav.library.service.SessionManager;
+import com.pranav.library.util.DbConnection;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.File;
@@ -22,11 +23,35 @@ import java.util.concurrent.Executors;
  * its own worker thread — this is what makes the concurrent-borrow race
  * condition real rather than simulated.
  */
+
+//email - admin@library.com
+//pass - admin123
 public class Main {
 
     public static void main(String[] args) throws Exception {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
-        String frontendDir = System.getenv().getOrDefault("FRONTEND_DIR", "../frontend");
+        // Default: the "frontend" folder next to src/ (i.e. run from the project root).
+        // The old default "../frontend" pointed OUTSIDE the project when run from the root, so every page was a 404.
+        String frontendDir = System.getenv("FRONTEND_DIR");
+        if (frontendDir == null || frontendDir.isEmpty()) {
+            frontendDir = new File("frontend").isDirectory() ? "frontend" : "../frontend";
+        }
+        if (!new File(frontendDir).isDirectory()) {
+            System.err.println("WARNING: frontend folder not found at " + new File(frontendDir).getAbsolutePath()
+                    + " - run from the project root, or set FRONTEND_DIR.");
+        }
+
+        // Fail loudly at startup instead of on the first login click.
+        try (java.sql.Connection c = DbConnection.get()) {
+            System.out.println("Database connection OK");
+        } catch (Exception e) {
+            System.err.println("==================================================================");
+            System.err.println(" WARNING: cannot connect to the database. Logins/catalogue WILL FAIL.");
+            System.err.println(" Reason: " + e.getMessage().split("\n")[0]);
+            System.err.println(" Check: MySQL is running, DB_URL / DB_USER / DB_PASSWORD are set,");
+            System.err.println("        and the database library_db exists (sql/schema.sql).");
+            System.err.println("==================================================================");
+        }
 
         // Repositories
         UserRepository userRepository = new UserRepository();
@@ -40,7 +65,7 @@ public class Main {
 
         // Handlers
         AuthHandler authHandler = new AuthHandler(authService);
-        ResourceHandler resourceHandler = new ResourceHandler(resourceRepository, authService);
+        ResourceHandler resourceHandler = new ResourceHandler(resourceRepository, authService, resourceManager);
         BorrowHandler borrowHandler = new BorrowHandler(resourceManager, borrowRecordRepository, authService);
         AdminHandler adminHandler = new AdminHandler(userRepository, authService);
 

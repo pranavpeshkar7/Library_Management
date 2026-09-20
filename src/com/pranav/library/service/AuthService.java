@@ -51,8 +51,14 @@ public class AuthService {
     public User requireUser(String token) throws Exception {
         String userId = sessionManager.getUserId(token);
         if (userId == null) throw new AuthenticationException("Missing or invalid session token");
-        return userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthenticationException("Session refers to a user that no longer exists"));
+        // Deactivation must take effect immediately, not just at the next login.
+        if (!userRepository.isActiveById(userId)) {
+            sessionManager.invalidate(token);
+            throw new AuthenticationException("This account has been deactivated by the librarian");
+        }
+        return user;
     }
 
     public void requireLibrarian(User user) throws AuthorizationException {
