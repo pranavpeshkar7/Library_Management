@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reading Room — Library Login</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1 class="auth-title">Reading Room</h1>
+    <p class="auth-sub">Sign in to borrow, or create an account to get started.</p>
+
+    <div class="tabs">
+      <div class="tab active" id="tabLogin">Sign in</div>
+      <div class="tab" id="tabSignup">Sign up</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password" />
+      </div>
+      <button class="btn" type="submit">Sign in</button>
+      <div class="form-msg" id="loginMsg"></div>
+    </form>
+
+    <!-- SIGNUP FORM -->
+    <form id="signupForm" style="display:none;">
+      <div class="field">
+        <label for="signupName">Full name</label>
+        <input type="text" id="signupName" required />
+      </div>
+      <div class="field">
+        <label for="signupEmail">Email</label>
+        <input type="email" id="signupEmail" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="signupPassword">Password</label>
+        <input type="password" id="signupPassword" required autocomplete="new-password" minlength="6" />
+      </div>
+      <div class="field">
+        <label for="signupRole">I am a</label>
+        <select id="signupRole">
+          <option value="STUDENT">Student</option>
+          <option value="TEACHER">Teacher</option>
+        </select>
+      </div>
+      <button class="btn" type="submit">Create account</button>
+      <div class="form-msg" id="signupMsg"></div>
+    </form>
+
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

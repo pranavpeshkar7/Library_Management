@@ -1,0 +1,320 @@
+/* ============================================================
+   Reading Room — a small, quiet design language for the library.
+   Palette: deep reading-room green + warm parchment + brass accent.
+   Serif for titles (evokes a card catalogue), sans for interface text.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --ink: #1f2a23;
+  --paper: #f6f3ec;
+  --paper-raised: #ffffff;
+  --green: #2f4a3c;
+  --green-deep: #1f3229;
+  --brass: #a9782f;
+  --brass-soft: #e7d9bd;
+  --line: #d8d0bf;
+  --danger: #9c3b2e;
+  --danger-bg: #f5e3e0;
+  --ok: #2f4a3c;
+  --ok-bg: #e4ece7;
+
+  --font-title: 'Lora', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px 64px;
+}
+
+/* ---------- Top bar ---------- */
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.brand {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  letter-spacing: 0.01em;
+}
+
+.brand span {
+  color: var(--brass);
+}
+
+.session-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.9rem;
+  color: #5a5a52;
+}
+
+.session-info .role-tag {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border: 1px solid var(--brass);
+  border-radius: 20px;
+  color: var(--brass);
+  text-transform: capitalize;
+}
+
+/* ---------- Auth screen ---------- */
+
+.auth-wrap {
+  max-width: 420px;
+  margin: 64px auto;
+  padding: 0 20px;
+}
+
+.auth-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+}
+
+.auth-title {
+  font-family: var(--font-title);
+  font-size: 1.7rem;
+  color: var(--green-deep);
+  margin: 0 0 4px;
+}
+
+.auth-sub {
+  color: #6b6b60;
+  font-size: 0.92rem;
+  margin: 0 0 28px;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  cursor: pointer;
+  color: #8a8a7c;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab.active {
+  color: var(--green-deep);
+  border-bottom-color: var(--brass);
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  color: #55554c;
+  margin-bottom: 6px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.field input:focus,
+.field select:focus {
+  outline: 2px solid var(--brass);
+  outline-offset: 1px;
+}
+
+.btn {
+  display: inline-block;
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--green);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn:hover { background: var(--green-deep); }
+.btn:disabled { background: #a9b0ab; cursor: not-allowed; }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green-deep);
+}
+.btn-outline:hover { background: var(--brass-soft); }
+
+.btn-danger {
+  background: var(--danger);
+}
+.btn-danger:hover { background: #7c2e23; }
+
+.btn-small {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+}
+
+.form-msg {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  display: none;
+}
+
+.form-msg.show { display: block; }
+.form-msg.error { background: var(--danger-bg); color: var(--danger); }
+.form-msg.ok { background: var(--ok-bg); color: var(--ok); }
+
+/* ---------- Section headings ---------- */
+
+.section-title {
+  font-family: var(--font-title);
+  font-size: 1.2rem;
+  color: var(--green-deep);
+  margin: 40px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.section-title:first-of-type { margin-top: 0; }
+
+/* ---------- Catalogue list (index-card feel, no boxy card grid) ---------- */
+
+.catalogue {
+  display: flex;
+  flex-direction: column;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.entry:last-child { border-bottom: none; }
+
+.entry-main { flex: 1; min-width: 200px; }
+
+.entry-title {
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  color: var(--ink);
+  margin: 0 0 2px;
+}
+
+.entry-meta {
+  font-size: 0.82rem;
+  color: #7a7a6d;
+}
+
+.entry-meta .type-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--brass);
+  border: 1px solid var(--brass);
+  border-radius: 20px;
+  padding: 1px 7px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.availability {
+  font-size: 0.82rem;
+  color: #6b6b60;
+  min-width: 90px;
+  text-align: right;
+}
+
+.availability.zero { color: var(--danger); }
+
+/* ---------- Empty state ---------- */
+
+.empty {
+  padding: 24px 4px;
+  color: #8a8a7c;
+  font-size: 0.9rem;
+}
+
+/* ---------- Admin forms ---------- */
+
+.inline-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  padding: 18px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 28px;
+}
+
+.inline-form .field { margin-bottom: 0; flex: 1; min-width: 140px; }
+.inline-form .btn { width: auto; }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 600px) {
+  .entry { flex-direction: column; align-items: flex-start; }
+  .entry-actions { width: 100%; justify-content: space-between; }
+  .availability { text-align: left; }
+}
