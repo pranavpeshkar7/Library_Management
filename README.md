@@ -1,188 +1,198 @@
-# Reading Room — Concurrent Library Reservation System
+# Reading Room: Library Management System
 
-A full-stack library management system built in **pure Java** (no Spring, no framework) to
-demonstrate OOP fundamentals, concurrency control, and REST API design — before learning
-Spring Boot. Frontend is plain HTML/CSS/JS. Backend uses only the JDK: `com.sun.net.httpserver`
-for HTTP, `java.sql` for the database, hand-written JSON handling, and `ReentrantLock` for
-thread safety.
+A full-stack library management system built in **core Java with no frameworks**. It has a custom HTTP server, a JSON REST API backed by **MySQL through JDBC**, and a plain HTML/CSS/JavaScript frontend.
 
-**This has been fully built and tested end-to-end**, including a live concurrency test:
-20 simultaneous borrow requests against a book with 3 copies produced *exactly* 3 successes
-and 17 clean rejections — no race condition, no double-booking. Details at the bottom.
+The goal of the project is to show how the pieces of a web backend actually work: routing, authentication, data access and concurrency control. Everything a framework normally hides is written by hand, using only the JDK plus the MySQL JDBC driver.
 
----
+## Features
 
-## 1. Prerequisites
+- **Three roles.** Students borrow up to 3 items, teachers up to 6, and librarians manage the catalogue and member access.
+- **Catalogue.** Books (14-day loans) and DVDs (5-day loans) with live copy counts.
+- **Borrow and return.** Due dates are tracked and copies return to the shelf when returned.
+- **Safe concurrent borrowing.** Per-item and per-user locks prevent double-booking the last copy and stop a user exceeding their limit with parallel requests.
+- **Authentication.** Salted password hashing and token-based sessions. Deactivating an account takes effect immediately.
+- **Librarian console.** Add, edit and remove items, and revoke or restore member access.
+- **Frontend.** Homepage, sign in / sign up, member dashboard, librarian console and contact page. Responsive.
 
-- **JDK 21** (or newer) — check with `java -version` and `javac -version`
-- **MySQL** (or MariaDB, which is wire-compatible) — a local install is fine
-- **VS Code** with the **Extension Pack for Java** (Microsoft) installed
+## Tech stack
 
-The JDBC driver you need (`mariadb-java-client-2.7.6.jar`) is already included in `lib/` —
-you don't need to download anything separately. It works against both MySQL and MariaDB.
+| Layer | Technology |
+|---|---|
+| Language | Java (JDK 21) |
+| HTTP server | `com.sun.net.httpserver.HttpServer` (built into the JDK) |
+| Database | MySQL, accessed through JDBC (`PreparedStatement`, MySQL Connector/J) |
+| Concurrency | `ExecutorService` thread pool, `ReentrantLock`, `ConcurrentHashMap` |
+| Frontend | HTML, CSS, vanilla JavaScript (`fetch`) |
 
----
-
-## 2. Set up the database
-
-Open a terminal (or MySQL Workbench / phpMyAdmin-equivalent) and run, in order:
-
-```powershell
-mysql -u root -p < sql\schema.sql
-mysql -u root -p library_db < sql\dummy_data.sql
-```
-
-This creates the `library_db` database with three tables (`users`, `resources`,
-`borrow_records`) and seeds it with 4 demo accounts and 7 catalogue items.
-
-**Demo accounts** (see `sql/dummy_data.sql` for the full list):
-
-| Role      | Email                          | Password    |
-|-----------|--------------------------------|-------------|
-| Librarian | admin@library.com              | admin123    |
-| Student   | asha.mehta@student.spu.edu     | student123  |
-| Student   | rohan.iyer@student.spu.edu     | student123  |
-| Teacher   | priya.kapoor@faculty.spu.edu   | teacher123  |
-
-Then create a database user the backend will connect as (or just use `root` for local testing):
-
-```sql
-CREATE USER 'libapp'@'localhost' IDENTIFIED BY 'libapp_pw';
-GRANT ALL PRIVILEGES ON library_db.* TO 'libapp'@'localhost';
-FLUSH PRIVILEGES;
-```
-
----
-
-## 3. Open the project in VS Code
-
-1. `File → Open Folder` → select the `backend` folder (the one containing `src/`).
-2. VS Code should detect it as a Java project automatically. If prompted, let it index.
-3. Add the JDBC driver to the project's classpath: open the **Java Projects** panel in the
-   sidebar → right-click **Referenced Libraries** → **Add Jar Folder...** → select `../lib`.
-   (If you don't see the Java Projects panel, install the *Extension Pack for Java* first.)
-
----
-
-## 4. Configure the database connection
-
-The backend reads DB credentials from environment variables, so nothing is hardcoded.
-Create `backend/.vscode/launch.json` (VS Code will offer to generate one the first time you
-run `Main.java` — edit it to add the `env` block):
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "java",
-      "name": "Launch Main",
-      "request": "launch",
-      "mainClass": "com.pranav.library.Main",
-      "projectName": "backend",
-      "env": {
-        "DB_URL": "jdbc:mysql://127.0.0.1:3306/library_db",
-        "DB_USER": "libapp",
-        "DB_PASSWORD": "libapp_pw",
-        "PORT": "8080",
-        "FRONTEND_DIR": "${workspaceFolder}/../frontend"
-      }
-    }
-  ]
-}
-```
-
-## 5. Run it
-
-Press **F5** (or the ▶ Run button above `main()` in `Main.java`). You should see:
+## Architecture
 
 ```
-Library server running on http://localhost:8080
-Serving frontend from: C:\...\frontend
+Browser (HTML/CSS/JS)
+   |  HTTP + JSON, X-Auth-Token header
+   v
+HttpServer  --> fixed thread pool (16 worker threads)
+   |
+   +-- "/"    StaticFileHandler   serves the frontend
+   +-- "/api" Router              dispatches "METHOD path" to a handler
+                 |
+                 v
+              Handlers            parse the request, check the role, build the response
+                 |
+                 v
+              Services            business rules: AuthService, ResourceManager, SessionManager
+                 |
+                 v
+              Repositories        JDBC data access behind Repository<T, ID>
+                 |
+                 v
+              MySQL
 ```
 
-Open **http://localhost:8080** in a browser — that's the whole app, frontend and backend,
-served from one process (no separate XAMPP-style static server needed, no CORS issues).
+Domain failures are custom checked exceptions (`LibraryException` and its subtypes). The `Router` catches them in one place and maps them to HTTP status codes.
 
-**Compiling/running from the command line instead** (PowerShell, from inside `backend/`):
-
-```powershell
-javac -d out -cp "..\lib\mariadb-java-client-2.7.6.jar" (Get-ChildItem -Recurse -Filter *.java src | % { $_.FullName })
-$env:DB_URL="jdbc:mysql://127.0.0.1:3306/library_db"; $env:DB_USER="libapp"; $env:DB_PASSWORD="libapp_pw"
-java -cp "out;..\lib\mariadb-java-client-2.7.6.jar" com.pranav.library.Main
-```
-
----
-
-## 6. Project structure
+## Project structure
 
 ```
-backend/src/com/pranav/library/
-  model/         User hierarchy (Student/Teacher/Librarian), LibraryResource hierarchy (Book/Dvd), BorrowRecord
-  exceptions/    Custom checked-exception hierarchy (LibraryException and subtypes)
-  repository/    Hand-written Repository<T,ID> interface + JDBC implementations
-  service/       ResourceManager (the concurrency core), AuthService, SessionManager
-  http/          Router, RouteHandler, StaticFileHandler — a hand-built dispatch layer
-  http/handlers/ AuthHandler, ResourceHandler, BorrowHandler, AdminHandler
-  util/          HttpUtil, JsonUtil (hand-rolled), PasswordUtil, DbConnection
-  Main.java      Wires everything together, starts the HTTP server
+src/com/pranav/library/
+  model/          User (abstract) -> Student, Teacher, Librarian
+                  LibraryResource (abstract) -> Book, Dvd
+                  BorrowRecord, Role
+  exceptions/     LibraryException and its subtypes
+  repository/     Repository<T, ID> interface + JDBC implementations
+  service/        ResourceManager (concurrency core), AuthService, SessionManager
+  http/           Router, RouteHandler, StaticFileHandler
+  http/handlers/  AuthHandler, ResourceHandler, BorrowHandler, AdminHandler
+  util/           HttpUtil, JsonUtil (hand-written), PasswordUtil, DbConnection
+  Main.java       wires everything together and starts the server
 
-frontend/
-  index.html, dashboard.html, admin.html
-  css/style.css
-  js/api.js, auth.js, dashboard.js, admin.js
-
-sql/
-  schema.sql       Table definitions
-  dummy_data.sql   4 demo accounts + 7 catalogue items + 2 sample borrow records
+frontend/         homepage.html, contact.html, index.html (sign in / up),
+                  dashboard.html, admin.html, css/, js/
+lib/              MySQL Connector/J
+sql/              schema.sql, dummy_data.sql
 ```
 
----
+## API reference
 
-## 7. What to say about each part in an interview
+Protected routes need the header `X-Auth-Token: <token>` returned by login. Request and response bodies are JSON.
 
-**Why abstract classes for `User` and `LibraryResource`, not one class with a role flag?**
-Because behavior genuinely differs per subtype, not just a label: `Student.getMaxBorrowLimit()`
-returns 3, `Teacher` returns 6, `Librarian` returns 0 and overrides `canManageLibrary()`.
-Similarly `Book.getBorrowDurationDays()` returns 14, `Dvd` returns 5. If every subclass behaved
-identically, a flag would be the right call — the differing behavior is what justifies the
-hierarchy here.
+| Method | Path | Access | Purpose | Success |
+|---|---|---|---|---|
+| POST | `/api/auth/signup` | Public | Create a student or teacher account | 201 |
+| POST | `/api/auth/login` | Public | Returns `{token, id, name, role}` | 200 |
+| POST | `/api/auth/logout` | Logged in | Invalidate the token | 200 |
+| GET | `/api/resources` | Logged in | List the catalogue | 200 |
+| POST | `/api/resources` | Librarian | Add an item | 201 |
+| PUT | `/api/resources?id=` | Librarian | Edit title, author or total copies | 200 |
+| DELETE | `/api/resources?id=` | Librarian | Remove an item (refused while copies are on loan) | 200 |
+| POST | `/api/borrow` | Student, teacher | Borrow `{resourceId}` | 201 |
+| POST | `/api/return` | Student, teacher | Return `{resourceId}` | 200 |
+| GET | `/api/my-borrows` | Logged in | The caller's loans | 200 |
+| GET | `/api/admin/users` | Librarian | List members | 200 |
+| PUT | `/api/admin/users/revoke?id=` | Librarian | Deactivate a member | 200 |
+| PUT | `/api/admin/users/restore?id=` | Librarian | Reactivate a member | 200 |
 
-**Why a `ReentrantLock` per resource ID instead of one global lock?**
-Two threads borrowing *different* books should never block each other — only concurrent
-attempts on the *same* book need to be serialized. A single global lock would be simpler but
-would turn every borrow across the whole catalog into a queue of one. The lock map
-(`ConcurrentHashMap<String, ReentrantLock>`) is built lazily with `computeIfAbsent`.
+**Status codes.** 400 bad or malformed input, 401 missing or invalid token, 403 wrong role, 404 unknown route or resource, 409 business-rule conflict (no copies left, borrow limit reached, already borrowed, duplicate email, item still on loan), 500 unexpected error.
 
-**What exactly does the lock protect?**
-The read-check-write sequence: read `availableCopies` → check `> 0` → decrement + persist to
-the DB. Without the lock, two threads can both pass the check before either writes, and the
-count can go negative under real concurrent load — the classic check-then-act race.
+## Concurrency design
 
-**How did you prove it actually works, not just "should work"?**
-Signed up 20 accounts, logged them all in, and fired 20 truly concurrent HTTP POST requests
-at `/api/borrow` for a book with exactly 3 copies. Result: exactly 3 got `201 Created`, the
-other 17 got a clean `409 Conflict`, and the database's `available_copies` ended at exactly 0
-— never negative, never over-allocated. Full command sequence is in this README's history / can
-be reproduced with any HTTP client.
+Each request runs on its own worker thread, so two people can genuinely try to borrow the last copy at the same moment. `ResourceManager` prevents the check-then-act race with two kinds of lock:
 
-**Why `com.sun.net.httpserver.HttpServer` instead of a micro-framework like Javalin/Spark?**
-Those are still frameworks — they route requests and parse JSON for you. `HttpServer` gives raw
-`HttpExchange` objects; the `Router` class, `HttpUtil`, and `JsonUtil` in this project are all
-hand-written. That's a stronger "I understand what a framework does under the hood" story than
-"I used a smaller framework."
+- **A lock per item** protects the read, check and write of `availableCopies`. Borrowing different items never blocks.
+- **A lock per user** protects the "has this user reached their limit?" check. Without it, one user sending parallel requests for different items would pass the check on every thread.
 
-**Why checked exceptions (`LibraryException extends Exception`) instead of unchecked?**
-Forces every caller at the HTTP boundary to explicitly handle domain failures (resource
-unavailable, borrow limit exceeded, etc.) and turn them into proper HTTP status codes, rather
-than letting them surface as an uncaught 500.
+Locks are always taken in the same order (user, then item), and return, edit and remove take only the item lock, so no thread can wait on a user lock while holding an item lock. This rules out deadlock. If saving the borrow record fails, the copy count is restored.
 
-**Where does the generic `Repository<T, ID>` interface come from conceptually?**
-It's deliberately the same shape as Spring Data's `JpaRepository<T, ID>` — same contract, but
-every method (`UserRepository`, `ResourceRepository`, `BorrowRecordRepository`) is implemented
-by hand with `PreparedStatement`/`ResultSet`, which is exactly what Spring Data generates for
-you at runtime.
+**Verified by test.** 20 simultaneous borrow requests against an item with 3 copies produced exactly 3 successes (`201`) and 17 rejections (`409`), and `available_copies` ended at 0.
 
-**Security note to be upfront about:** password hashing here is salted SHA-256, not
-bcrypt/Argon2 — a deliberate scope decision to stay dependency-free, and worth naming as a
-"what I'd do differently in production" point if asked.
+## Getting started
+
+### Prerequisites
+
+- JDK 21 or newer (`java -version`, `javac -version`)
+- MySQL 8 running locally
+
+MySQL Connector/J is already in `lib/`.
+
+### 1. Create the database
+
+```
+mysql -u root -p < sql/schema.sql
+mysql -u root -p library_db < sql/dummy_data.sql
+```
+
+If your MySQL is not on the default port 3306 (for example, XAMPP is using it), add `-h 127.0.0.1 -P <port>` to those commands.
+
+### 2. Configure the connection
+
+The server reads its settings from environment variables, so no password is stored in the code.
+
+| Variable | Meaning | Default |
+|---|---|---|
+| `DB_URL` | JDBC URL | `jdbc:mysql://localhost:3306/library_db` |
+| `DB_USER` | Database user | `root` |
+| `DB_PASSWORD` | Database password | empty |
+| `PORT` | Web server port | `8080` |
+| `FRONTEND_DIR` | Frontend folder | `frontend` |
+
+Windows (cmd):
+
+```
+set DB_PASSWORD=your_password
+set DB_URL=jdbc:mysql://localhost:3307/library_db
+```
+
+Windows (PowerShell): `$env:DB_PASSWORD = "your_password"`. macOS and Linux: `export DB_PASSWORD=your_password`.
+
+### 3. Compile and run
+
+Run these from the project root (the folder containing `src`, `lib` and `frontend`).
+
+Windows:
+
+```
+javac -cp "lib/*" -sourcepath src -d bin src\com\pranav\library\Main.java
+java -cp "bin;lib/*" com.pranav.library.Main
+```
+
+macOS and Linux:
+
+```
+javac -cp "lib/*" -sourcepath src -d bin src/com/pranav/library/Main.java
+java -cp "bin:lib/*" com.pranav.library.Main
+```
+
+You should see `Database connection OK` and `Library server running on http://localhost:8080`. Open **http://localhost:8080**. The frontend and the API are served by the same process, so there are no CORS issues.
+
+### Demo accounts
+
+Loaded by `sql/dummy_data.sql`. These are for local development only; change them before deploying anywhere.
+
+| Role | Email | Password |
+|---|---|---|
+| Librarian | admin@library.com | admin123 |
+| Student | asha.mehta@student.spu.edu | student123 |
+| Student | rohan.iyer@student.spu.edu | student123 |
+| Teacher | priya.kapoor@faculty.spu.edu | teacher123 |
+
+Librarian accounts cannot be created through public signup; they are created directly in the database.
+
+## Design decisions
+
+- **Abstract `User` and `LibraryResource`, not a role flag.** Behaviour really differs by subtype (`getMaxBorrowLimit()` is 3, 6 or 0; `getBorrowDurationDays()` is 14 or 5), so polymorphism replaces `if (role == ...)` chains.
+- **`HttpServer` instead of a micro-framework.** Routing, JSON handling and authentication are written by hand, to show what a framework does underneath.
+- **Checked exceptions for domain errors.** Every failure has to be handled at the HTTP boundary and turned into the right status code, instead of surfacing as an unhandled 500.
+- **Generic `Repository<T, ID>`.** Same contract shape as Spring Data, implemented by hand with `PreparedStatement` and `ResultSet`.
+- **Parameterised queries everywhere**, so user input is never concatenated into SQL.
+
+## Known limitations
+
+- Passwords use a salted SHA-256 hash. A production system should use bcrypt or Argon2.
+- Sessions live in server memory, so they are lost on restart and never expire.
+- Each query opens a new database connection; there is no connection pool.
+- Borrowing is protected by in-process locks, not a single database transaction, so the guarantee holds for one server instance only. Running several instances would need transactions or row-level locking (`SELECT ... FOR UPDATE`).
+- There is no rate limiting on login.
+- `Access-Control-Allow-Origin` is `*` for development convenience.
+
+## Possible next steps
+
+Connection pooling, database transactions for borrow and return, bcrypt hashing, session expiry, overdue and fine tracking, search and pagination, and a Spring Boot port for comparison.
